@@ -5,12 +5,15 @@
 #########################################
 # Modified by Robin Parisi
 # Contact at parisi.robin@gmail.com
-# Github https://github.com/Fendtwick/ssh-manager 
+# Github https://github.com/Fendtwick/ssh-manager
+# Modified by Free 4 Funs
+# Contact at leftfordead@sfr.fr
+# Github https://github.com/Owned67/ssh-manager
 
 #================== Globals ==================================================
 
 # Version
-VERSION="0.5"
+VERSION="0.6"
 
 # Configuration
 HOST_FILE="$HOME/.ssh_servers"
@@ -19,8 +22,12 @@ DATA_ALIAS=1
 DATA_HUSER=2
 DATA_HADDR=3
 DATA_HPORT=4
-SSH_DEFAULT_PORT=22
-
+if [ -f /etc/ssh/sshd_config ];then
+SSH_DEFAULT_PORT="`cat /etc/ssh/sshd_config | grep Port | awk '{print $2}'`"
+else
+echo "Server SSH is not installed or sshd_config is not present"
+return 1
+fi
 #================== Functions ================================================
 
 function exec_ping() {
@@ -36,15 +43,15 @@ function exec_ping() {
 
 function test_host() {
 	exec_ping $* > /dev/null
-	if [ $? != 0 ] ; then
-		echo -n "["
-		cecho -n -red "KO"
-		echo -n "]  "
-	else
-		echo -n "["
-		cecho -n -green "UP"
-		echo -n "]  "
-	fi 
+		if [ $? != 0 ] ; then
+			echo -n "["
+			cecho -n -red "KO"
+			echo -n "]  "
+		else
+			echo -n "["
+			cecho -n -green "UP"
+			echo -n "]  "
+		fi 
 }
 
 function separator() {
@@ -210,6 +217,4 @@ fi
 * )
 echo "$0: unrecognised command '$cmd'"
 ;;
-esac	
-
-
+esac
