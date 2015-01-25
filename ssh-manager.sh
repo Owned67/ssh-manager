@@ -13,7 +13,7 @@
 #================== Globals ==================================================
 
 # Version
-VERSION="0.6"
+VERSION="0.7"
 
 # Configuration
 HOST_FILE="$HOME/.ssh_servers"
@@ -26,12 +26,13 @@ if [ -f /etc/ssh/sshd_config ];then
 SSH_DEFAULT_PORT="`cat /etc/ssh/sshd_config | grep Port | awk '{print $2}'`"
 else
 echo "Server SSH is not installed or sshd_config is not present"
-return 1
+exit 1
 fi
+AllowPing=1
 #================== Functions ================================================
 
 function exec_ping() {
-	case $(uname) in 
+	case $(uname) in
 		MINGW*)
 			ping -n 1 -i 2 $@
 			;;
@@ -42,6 +43,7 @@ function exec_ping() {
 }
 
 function test_host() {
+	if [ $AllowPing -eq 1 ];then
 	exec_ping $* > /dev/null
 		if [ $? != 0 ] ; then
 			echo -n "["
@@ -51,7 +53,10 @@ function test_host() {
 			echo -n "["
 			cecho -n -green "UP"
 			echo -n "]  "
-		fi 
+		fi
+	else
+		cecho -n -red "This function is disabled, Set variable AllowPing  to 1"
+	fi
 }
 
 function separator() {
@@ -139,16 +144,16 @@ if [ ! -f $HOST_FILE ]; then touch "$HOST_FILE"; fi
 
 # without args
 if [ $# -eq 0 ]; then
-	separator 
+	separator
 	echo "List of availables servers for user $(whoami) "
 	separator
-	while IFS=: read label user ip port         
-	do    
+	while IFS=: read label user ip port
+	do
 	test_host $ip
 	echo -ne " "
 	cecho -n -blue $label
 	echo -ne ' ==> '
-	cecho -n -red $user 
+	cecho -n -red $user
 	cecho -n -yellow "@"
 	cecho -n -white $ip
 	echo -ne ' -> '
